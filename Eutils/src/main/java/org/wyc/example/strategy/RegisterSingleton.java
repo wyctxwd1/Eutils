@@ -10,21 +10,25 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class Register {
-    private static final Map<EventType, Handler> typeHandlerMap = new ConcurrentHashMap<>();
+public class RegisterSingleton {
+    private final Map<EventType, Handler> typeHandlerMap = new ConcurrentHashMap<>();
 
-    static {
-        init();
-    }
-
-    private static void init() {
+    private RegisterSingleton() {
         //自定义注解target为type，scanner的时候需要针对type和subtype
-        Reflections reflections = new Reflections("org.wyc.pattern.strategy", new TypeAnnotationsScanner(), new SubTypesScanner());
+        Reflections reflections = new Reflections("org.wyc.example.strategy", new TypeAnnotationsScanner(), new SubTypesScanner());
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(EventHandler.class);
-        classes.forEach(Register::buildHandlerMap);
+        classes.forEach(this::buildHandlerMap);
     }
 
-    private static void buildHandlerMap(Class<?> clz) {
+    private static class SingletonHolder {
+        private static final RegisterSingleton INSTANCE = new RegisterSingleton();
+    }
+
+    public static RegisterSingleton getInstance() {
+        return SingletonHolder.INSTANCE;
+    }
+
+    private void buildHandlerMap(Class<?> clz) {
         EventHandler eventHandler = clz.getAnnotation(EventHandler.class);
         if (eventHandler != null) {
             EventType[] types = eventHandler.types();
@@ -38,7 +42,7 @@ public class Register {
         }
     }
 
-    public static Handler getHandler(EventType type) {
+    public Handler getHandler(EventType type) {
         return typeHandlerMap.get(type);
     }
 }
