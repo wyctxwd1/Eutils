@@ -36,7 +36,7 @@ public class FileListenerFactory {
 
     public void removeMonitor(String monitorDir) {
         StreamSupport.stream(monitor.getObservers().spliterator(), false)
-                .filter(fileAlterationObserver -> fileAlterationObserver.getDirectory().getPath().equalsIgnoreCase(monitorDir))
+                .filter(observer -> observer.getDirectory().getPath().equalsIgnoreCase(monitorDir))
                 .forEach(monitor::removeObserver);
     }
 
